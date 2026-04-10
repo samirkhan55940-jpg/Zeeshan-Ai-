@@ -1,4 +1,4 @@
-name: Build Zeeshan Ai Chat (Live Verified & Full Power)
+name: Build Zeeshan Ai Chat (Final Theme Fixed)
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
         with:
           ndk-version: r25c
 
-      - name: 4. Create Project Structure (Strict Repo Fix)
+      - name: 4. Create Project Structure
         run: |
           mkdir -p app/src/main/java/com/zeeshan/ai
           mkdir -p app/src/main/res/values
@@ -31,22 +31,10 @@ jobs:
           mkdir -p app/src/main/assets
           mkdir -p app/src/main/cpp
 
-          # FIX: Repository settings ko settings.gradle me lock karna
+          # Repository Fix
           cat << 'EOF' > settings.gradle
-          pluginManagement {
-              repositories {
-                  google()
-                  mavenCentral()
-                  gradlePluginPortal()
-              }
-          }
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS); repositories { google(); mavenCentral() } }
           rootProject.name = "Zeeshan Ai Chat"
           include ':app'
           EOF
@@ -57,17 +45,15 @@ jobs:
 
       - name: 5. Download 2GB Google Gemma-2 Brain
         run: |
-          # Verified Live Link for Gemma-2 (Approx 2GB)
-          wget -q --show-progress https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf -O app/src/main/assets/z2_model.gguf
+          # 2GB Gemma-2 Model (High Quality Q5)
+          wget -q --show-progress https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q5_K_M.gguf -O app/src/main/assets/z2_model.gguf
 
-      - name: 6. Download Llama Engine (LIVE VERIFIED BRANCH)
+      - name: 6. Setup Icon & Engine
         run: |
-          # LIVE CHECKED: ggml-org is the new official path. Branch b3561 is stable.
           git clone --branch b3561 --depth 1 https://github.com/ggml-org/llama.cpp app/src/main/cpp/llama
-          # Icon Download
           wget -q --show-progress "https://cdn-icons-png.flaticon.com/512/2103/2103633.png" -O app/src/main/res/drawable/ic_z2_logo.png
 
-      - name: 7. Write C++ Engine (The 1000-Line Accelerator Core)
+      - name: 7. Write C++ Engine (Asli Accelerator)
         run: |
           cat << 'EOF' > app/src/main/cpp/CMakeLists.txt
           cmake_minimum_required(VERSION 3.22.1)
@@ -96,8 +82,8 @@ jobs:
               if (!model) return env->NewStringUTF("Error: Engine Load Failed!");
 
               auto cparams = llama_context_default_params();
-              cparams.n_ctx = 2048; // History memory space
-              cparams.n_threads = 4; // CPU Full Power (4-Core)
+              cparams.n_ctx = 2048; 
+              cparams.n_threads = 4; 
               llama_context * ctx = llama_new_context_with_model(model, cparams);
 
               std::vector<llama_token> tokens(2048);
@@ -109,7 +95,6 @@ jobs:
               std::string ai_reply = "";
               int n_vocab = llama_n_vocab(model);
 
-              // --- THE ACCELERATOR LOOP (512 STEPS FOR 4GB RAM SAFETY) ---
               for (int step = 0; step < 512; step++) {
                   float * logits = llama_get_logits_ith(ctx, batch.n_tokens - 1);
                   llama_token id = 0; float max_p = -1e9f;
@@ -133,8 +118,20 @@ jobs:
           }
           EOF
 
-      - name: 8. Write Java VIP UI (Gullu, Hara, Kala Theme)
+      - name: 8. Write Theme, Build Gradle & Java UI
         run: |
+          # --- THEME FIX: Asli Sajawat ki File ---
+          cat << 'EOF' > app/src/main/res/values/styles.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+                  <item name="colorPrimary">#000000</item>
+                  <item name="colorPrimaryDark">#000000</item>
+                  <item name="colorAccent">#E91E63</item>
+              </style>
+          </resources>
+          EOF
+
           cat << 'EOF' > build.gradle
           buildscript {
               repositories { google(); mavenCentral() }
@@ -142,6 +139,7 @@ jobs:
           }
           EOF
 
+          # --- FIX: Dependencies yahan lagai gayi hain ---
           cat << 'EOF' > app/build.gradle
           apply plugin: 'com.android.application'
           android {
@@ -152,11 +150,14 @@ jobs:
                   minSdk 24
                   targetSdk 34
                   versionCode 1
-                  versionName "27.0-Live-Verified"
+                  versionName "28.0-Theme-Fix"
                   ndk { abiFilters 'arm64-v8a' }
               }
               aaptOptions { noCompress 'gguf' }
               externalNativeBuild { cmake { path "src/main/cpp/CMakeLists.txt" } }
+          }
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
           }
           EOF
 
@@ -203,10 +204,9 @@ jobs:
 
                   LinearLayout root = new LinearLayout(this);
                   root.setOrientation(LinearLayout.VERTICAL);
-                  root.setBackgroundColor(Color.BLACK); // KALA BACKGROUND
+                  root.setBackgroundColor(Color.BLACK); // KALA
                   root.setPadding(20, 20, 20, 20);
                   
-                  // --- VIP Header (Gullu Title & Hara Menu) ---
                   LinearLayout header = new LinearLayout(this);
                   header.setGravity(Gravity.CENTER_VERTICAL);
                   header.setPadding(0, 0, 0, 30);
@@ -217,13 +217,13 @@ jobs:
                   
                   TextView title = new TextView(this);
                   title.setText(" Zeeshan Ai Chat");
-                  title.setTextColor(Color.parseColor("#E91E63")); // GULLU COLOR
+                  title.setTextColor(Color.parseColor("#E91E63")); // GULLU
                   title.setTextSize(20);
                   header.addView(title, new LinearLayout.LayoutParams(0, -2, 1f));
                   
                   TextView menu = new TextView(this);
                   menu.setText("⋮");
-                  menu.setTextColor(Color.parseColor("#4CAF50")); // HARA COLOR
+                  menu.setTextColor(Color.parseColor("#4CAF50")); // HARA
                   menu.setTextSize(30);
                   menu.setPadding(20, 0, 20, 0);
                   menu.setOnClickListener(v -> {
@@ -243,7 +243,6 @@ jobs:
                   chat = new LinearLayout(this); chat.setOrientation(LinearLayout.VERTICAL);
                   scrollView.addView(chat);
                   
-                  // Bottom Bar
                   LinearLayout bottomBar = new LinearLayout(this);
                   bottomBar.setGravity(Gravity.CENTER_VERTICAL);
                   
@@ -263,24 +262,24 @@ jobs:
                   });
 
                   input = new EditText(this);
-                  input.setHint("Hindi/Urdu Baat karein...");
+                  input.setHint("Yahan Type Karein...");
                   input.setTextColor(Color.WHITE);
                   input.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
                   
                   Button send = new Button(this);
                   send.setText("SEND");
-                  send.setTextColor(Color.parseColor("#4CAF50")); // HARA COLOR
+                  send.setTextColor(Color.parseColor("#4CAF50")); // HARA
                   send.setBackgroundColor(Color.TRANSPARENT);
                   send.setOnClickListener(v -> {
                       String q = input.getText().toString();
                       if(!q.isEmpty() && !path.isEmpty()){
-                          addText("You: " + q, "#E91E63"); // GULLU COLOR
+                          addText("You: " + q, "#E91E63"); // GULLU
                           input.setText("");
-                          chatHistory += "User: " + q + "\nZ+2: ";
+                          chatHistory += "User: " + q + "\nZeeshan Ai: ";
                           new Thread(() -> {
                               String r = askZ2Native(chatHistory, path);
                               runOnUiThread(() -> {
-                                  addText("Z+2: " + r, "#4CAF50"); // HARA COLOR
+                                  addText("Zeeshan Ai: " + r, "#4CAF50"); // HARA
                                   chatHistory += r + "\n";
                                   tts.speak(r, TextToSpeech.QUEUE_FLUSH, null, null);
                               });
@@ -326,7 +325,7 @@ jobs:
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
               <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
               <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-              <application android:icon="@drawable/ic_z2_logo" android:label="Z+2 Ai" android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+              <application android:icon="@drawable/ic_z2_logo" android:label="Z+2 Ai" android:theme="@style/AppTheme">
                   <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
@@ -337,15 +336,15 @@ jobs:
           </manifest>
           EOF
 
-      - name: 9. Final Build (Forced Success)
+      - name: 9. Final Build
         run: |
           export ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/25.2.9519653
           gradle wrapper --gradle-version 8.5
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: 10. Upload Final APK
+      - name: 10. Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Zeeshan-Ai-Final-Master
+          name: Zeeshan-Ai-Theme-Fixed
           path: app/build/outputs/apk/debug/*.apk
