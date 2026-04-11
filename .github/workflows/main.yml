@@ -1,4 +1,4 @@
-name: Build Zeeshan Z+2 Chat (Fix Plugin Error)
+name: Build Zeeshan Z+2 Chat (Final Fix)
 
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
           include ':app'
           EOF
 
-          # Root build.gradle (YAHAN FIX HAI - Isse plugin mil jayega)
+          # Root build.gradle
           cat << 'EOF' > build.gradle
           buildscript {
               repositories { google(); mavenCentral() }
@@ -63,7 +63,7 @@ jobs:
           git clone --branch b3561 --depth 1 https://github.com/ggml-org/llama.cpp.git app/src/main/cpp/llama
           wget -q --show-progress "https://cdn-icons-png.flaticon.com/512/9342/9342158.png" -O app/src/main/res/drawable/ic_z_logo.png
 
-      - name: 7. Write C++ Engine (Thinking Loop 262)
+      - name: 7. Write C++ Engine (Thinking Loop 262 & CTX 200)
         run: |
           cat << 'EOF' > app/src/main/cpp/CMakeLists.txt
           cmake_minimum_required(VERSION 3.22.1)
@@ -93,7 +93,7 @@ jobs:
               if (!model) return env->NewStringUTF("Error: Engine Load Failed!");
 
               auto cparams = llama_context_default_params();
-              cparams.n_ctx = 200; // Zeeshan bhai ka 200 CTX
+              cparams.n_ctx = 200; // Zeeshan bhai ka 200 CTX limit
               cparams.n_threads = 4;
               
               llama_context * ctx = llama_new_context_with_model(model, cparams);
@@ -106,6 +106,7 @@ jobs:
               std::string ai_reply = "";
               int n_vocab = llama_n_vocab(model);
 
+              // 262 words accelerator loop
               for (int step = 0; step < 262; step++) {
                   float * logits = llama_get_logits_ith(ctx, batch.n_tokens - 1);
                   llama_token id = 0; float max_p = -1e9f;
@@ -137,7 +138,7 @@ jobs:
                   minSdk 24
                   targetSdk 34
                   versionCode 1
-                  versionName "38.0-ZPlus2"
+                  versionName "39.0-ZPlus2"
                   ndk { abiFilters 'arm64-v8a' }
               }
               aaptOptions { noCompress 'gguf' }
@@ -179,6 +180,7 @@ jobs:
                   root.setBackgroundColor(Color.BLACK);
                   root.setPadding(20, 20, 20, 20);
                   
+                  // App Khulte hi Header Name: Zeeshan Z+² Chat
                   TextView title = new TextView(this);
                   title.setText("Zeeshan Z+² Chat");
                   title.setTextColor(Color.parseColor("#0284C7"));
@@ -257,8 +259,10 @@ jobs:
           </manifest>
           EOF
 
-      - name: 9. Final Build
+      - name: 9. Final Build (Fixed gradlew issue)
         run: |
+          export ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/25.2.9519653
+          gradle wrapper --gradle-version 8.5
           chmod +x gradlew
           ./gradlew assembleDebug
 
