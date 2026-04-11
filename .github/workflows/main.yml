@@ -1,4 +1,4 @@
-name: Build Zeeshan Ai Chat (200-CTX Ultra Lite Edition)
+name: Build Zeeshan Z+2 Chat (Turbo Master 2026)
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
           cat << 'EOF' > settings.gradle
           pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
           dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS); repositories { google(); mavenCentral() } }
-          rootProject.name = "ZChat"
+          rootProject.name = "ZPlus2Chat"
           include ':app'
           EOF
 
@@ -42,16 +42,18 @@ jobs:
           android.enableJetifier=true
           org.gradle.jvmargs=-Xmx6g" > gradle.properties
 
-      - name: 5. Download Ultra-Lite Gemma-2 (Live Verified)
+      - name: 5. Download 750MB Qwen Dimaag (RAM Safe Edition)
         run: |
-          wget -q --show-progress https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q3_K_L.gguf -O app/src/main/assets/z_model.gguf
+          # 2026 Live Link for Qwen 1.8B Q2_K (750MB)
+          wget -q --show-progress https://huggingface.co/mradermacher/Qwen1.5-1.8B-Chat-GGUF/resolve/main/Qwen1.5-1.8B-Chat.Q2_K.gguf -O app/src/main/assets/z_model.gguf
 
-      - name: 6. Setup Icon & Llama Engine (Live Verified b3561)
+      - name: 6. Setup Icon & Llama Engine (Verified Stable)
         run: |
           git clone --branch b3561 --depth 1 https://github.com/ggml-org/llama.cpp.git app/src/main/cpp/llama
+          # Placeholder Icon (Bhai, apni logo image is folder me ic_z_logo.png naam se rakhna)
           wget -q --show-progress "https://cdn-icons-png.flaticon.com/512/9342/9342158.png" -O app/src/main/res/drawable/ic_z_logo.png
 
-      - name: 7. Write C++ Engine (200 CTX & 262-Word Accelerator)
+      - name: 7. Write C++ Engine (Thinking Loop & Accelerator)
         run: |
           cat << 'EOF' > app/src/main/cpp/CMakeLists.txt
           cmake_minimum_required(VERSION 3.22.1)
@@ -81,8 +83,7 @@ jobs:
               if (!model) return env->NewStringUTF("Error: Engine Load Failed!");
 
               auto cparams = llama_context_default_params();
-              
-              // Zeeshan Bhai ka Ultra-Lite 200 CTX (RAM Saver)
+              // Zeeshan bhai ka Ultra-Lite 200 CTX (RAM Saver for 1.8GB)
               cparams.n_ctx = 200; 
               cparams.n_threads = 4;
               
@@ -91,76 +92,36 @@ jobs:
               std::vector<llama_token> tokens(200);
               int n_tokens = llama_tokenize(model, userText, strlen(userText), tokens.data(), tokens.size(), true, true);
               
-              // Ensure we don't crash if input is larger than our new 200 context
-              if (n_tokens > 190) {
-                  n_tokens = 190;
-              }
-              
-              llama_batch batch = llama_batch_get_one(tokens.data(), n_tokens, 0, 0);
+              llama_batch batch = llama_batch_get_one(tokens.data(), (n_tokens > 190 ? 190 : n_tokens), 0, 0);
               llama_decode(ctx, batch);
 
               std::string ai_reply = "";
               int n_vocab = llama_n_vocab(model);
 
-              // 🚀 262-WORD SUPER FAST TURBO LOOP 🚀
+              // 🚀 262-WORD THINKING LOOP ACCELERATOR 🚀
               for (int step = 0; step < 262; step++) {
                   float * logits = llama_get_logits_ith(ctx, batch.n_tokens - 1);
-
-                  llama_token new_token_id = 0;
-                  float max_prob = -1e9f;
-                  for (int i = 0; i < n_vocab; i++) {
-                      if (logits[i] > max_prob) {
-                          max_prob = logits[i];
-                          new_token_id = i;
-                      }
-                  }
-
-                  if (llama_token_is_eog(model, new_token_id)) break; 
-
+                  llama_token id = 0; float max_p = -1e9f;
+                  for (int i = 0; i < n_vocab; i++) { if (logits[i] > max_p) { max_p = logits[i]; id = i; } }
+                  if (llama_token_is_eog(model, id)) break; 
                   char buf[128];
-                  int n_chars = llama_token_to_piece(model, new_token_id, buf, sizeof(buf), 0, true);
-                  if (n_chars > 0) {
-                      ai_reply += std::string(buf, n_chars);
-                  }
-
-                  batch = llama_batch_get_one(&new_token_id, 1, n_tokens + step, 0);
+                  int n = llama_token_to_piece(model, id, buf, sizeof(buf), 0, true);
+                  if (n > 0) ai_reply += std::string(buf, n);
+                  batch = llama_batch_get_one(&id, 1, n_tokens + step, 0);
                   if (llama_decode(ctx, batch) != 0) break;
               }
 
               llama_free(ctx);
               llama_free_model(model);
               llama_backend_free();
-              
               env->ReleaseStringUTFChars(prompt, userText);
               env->ReleaseStringUTFChars(modelPath, path);
               return env->NewStringUTF(ai_reply.c_str());
           }
           EOF
 
-      - name: 8. Write Java UI (Zeeshan AI chat, 200MB Chat Vault, Blue Theme)
+      - name: 8. Write Java UI (Blue Theme & Custom Naming)
         run: |
-          echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>
-          <resources>
-              <color name=\"colorPrimary\">#000000</color>
-              <color name=\"colorPrimaryDark\">#000000</color>
-              <color name=\"colorAccent\">#0284C7</color> </resources>" > app/src/main/res/values/colors.xml
-
-          echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>
-          <resources>
-              <style name=\"AppTheme\" parent=\"Theme.AppCompat.Light.NoActionBar\">
-                  <item name=\"colorPrimary\">@color/colorPrimary</item>
-                  <item name=\"colorPrimaryDark\">@color/colorPrimaryDark</item>
-                  <item name=\"colorAccent\">@color/colorAccent</item>
-              </style>
-          </resources>" > app/src/main/res/values/styles.xml
-
-          cat << 'EOF' > build.gradle
-          buildscript {
-              repositories { google(); mavenCentral() }
-              dependencies { classpath 'com.android.tools.build:gradle:8.2.0' }
-          }
-          EOF
-
           cat << 'EOF' > app/build.gradle
           apply plugin: 'com.android.application'
           android {
@@ -171,7 +132,7 @@ jobs:
                   minSdk 24
                   targetSdk 34
                   versionCode 1
-                  versionName "36.0-Ultra-Lite-CTX"
+                  versionName "37.0-ZPlus2"
                   ndk { abiFilters 'arm64-v8a' }
               }
               aaptOptions { noCompress 'gguf' }
@@ -182,180 +143,82 @@ jobs:
 
           cat << 'EOF' > app/src/main/java/com/zeeshan/ai/MainActivity.java
           package com.zeeshan.ai;
-          import android.Manifest;
-          import android.content.Intent;
           import android.graphics.Color;
-          import android.os.Build;
           import android.os.Bundle;
-          import android.speech.RecognizerIntent;
           import android.speech.tts.TextToSpeech;
           import android.view.Gravity;
           import android.widget.*;
           import androidx.appcompat.app.AppCompatActivity;
-          import androidx.core.app.ActivityCompat;
           import java.io.*;
-          import java.util.ArrayList;
           import java.util.Locale;
 
           public class MainActivity extends AppCompatActivity {
               private String path = "";
-              private String liveChatHistory = "";
               private LinearLayout chat;
               private EditText input;
               private ScrollView scrollView;
               private TextToSpeech tts; 
               
-              // 700MB Vault Split (200MB Chat, 500MB Docs)
-              private final long VAULT_CHAT_200MB = 209715200L; 
-              private File chatVaultFile;
-
               static { System.loadLibrary("z2_engine"); }
               public native String askZNative(String p, String m);
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                      ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
-                  }
-
-                  chatVaultFile = new File(getFilesDir(), "Chat_Vault_200MB.txt");
-                  try { if (!chatVaultFile.exists()) chatVaultFile.createNewFile(); } catch(Exception e){}
-                  loadChatHistory();
-
                   tts = new TextToSpeech(this, status -> {
                       if(status == TextToSpeech.SUCCESS) tts.setLanguage(new Locale("hi", "IN"));
                   });
 
                   LinearLayout root = new LinearLayout(this);
                   root.setOrientation(LinearLayout.VERTICAL);
-                  root.setBackgroundColor(Color.parseColor("#000000")); // KALA BACKGROUND
+                  root.setBackgroundColor(Color.BLACK);
                   root.setPadding(20, 20, 20, 20);
                   
-                  LinearLayout header = new LinearLayout(this);
-                  header.setOrientation(LinearLayout.HORIZONTAL);
-                  header.setGravity(Gravity.CENTER_VERTICAL);
-                  
-                  ImageView logoView = new ImageView(this);
-                  logoView.setImageResource(R.drawable.ic_z_logo);
-                  header.addView(logoView, new LinearLayout.LayoutParams(120, 120));
-                  
+                  // Title Bar: Zeeshan Z+² Chat
                   TextView title = new TextView(this);
-                  title.setText("Zeeshan AI chat"); // STRICT NAME
-                  title.setTextColor(Color.parseColor("#0284C7")); // BLUE TITLE
-                  title.setTextSize(20);
-                  title.setPadding(20, 0, 0, 0);
-                  header.addView(title, new LinearLayout.LayoutParams(0, -2, 1f));
+                  title.setText("Zeeshan Z+² Chat");
+                  title.setTextColor(Color.parseColor("#0284C7")); // BLUE
+                  title.setTextSize(22);
+                  title.setGravity(Gravity.CENTER);
+                  title.setPadding(0, 0, 0, 20);
                   
-                  TextView menu = new TextView(this);
-                  menu.setText("⋮"); 
-                  menu.setTextColor(Color.parseColor("#4CAF50")); // GREEN
-                  menu.setTextSize(30);
-                  menu.setPadding(20, 0, 20, 0);
-                  menu.setOnClickListener(v -> {
-                      PopupMenu p = new PopupMenu(MainActivity.this, menu);
-                      p.getMenu().add("♻️ Clear 200MB Chat Vault");
-                      p.setOnMenuItemClickListener(item -> {
-                          liveChatHistory = "";
-                          chat.removeAllViews();
-                          try { new PrintWriter(chatVaultFile).close(); } catch(Exception e){}
-                          Toast.makeText(MainActivity.this, "Chat Memory Cleaned!", Toast.LENGTH_SHORT).show();
-                          return true;
-                      });
-                      p.show();
-                  });
-                  header.addView(menu);
-
                   scrollView = new ScrollView(this);
                   scrollView.setLayoutParams(new LinearLayout.LayoutParams(-1, 0, 1f));
                   chat = new LinearLayout(this); chat.setOrientation(LinearLayout.VERTICAL);
                   scrollView.addView(chat);
                   
-                  LinearLayout bottomBar = new LinearLayout(this);
-                  bottomBar.setOrientation(LinearLayout.HORIZONTAL);
-                  bottomBar.setGravity(Gravity.CENTER_VERTICAL);
+                  input = new EditText(this);
+                  input.setHint("Hindi/Urdu Baat karein...");
+                  input.setTextColor(Color.WHITE);
+                  input.setHintTextColor(Color.GRAY);
                   
-                  Button micBtn = new Button(this);
-                  micBtn.setText("🎤"); micBtn.setTextSize(20); micBtn.setBackgroundColor(Color.TRANSPARENT);
-                  micBtn.setOnClickListener(v -> {
-                      Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                      intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                      startActivityForResult(intent, 100);
+                  Button send = new Button(this);
+                  send.setText("SEND");
+                  send.setTextColor(Color.parseColor("#4CAF50")); // GREEN
+                  send.setOnClickListener(v -> {
+                      String q = input.getText().toString();
+                      if(!q.isEmpty() && !path.isEmpty()){
+                          addText("You: " + q, "#0284C7");
+                          input.setText("");
+                          new Thread(() -> {
+                              String r = askZNative(q, path);
+                              runOnUiThread(() -> {
+                                  addText("Z+²: " + r, "#4CAF50");
+                                  tts.speak(r, TextToSpeech.QUEUE_FLUSH, null, null);
+                              });
+                          }).start();
+                      }
                   });
                   
-                  input = new EditText(this);
-                  input.setHint("Yahan Type Karein...");
-                  input.setHintTextColor(Color.GRAY);
-                  input.setTextColor(Color.WHITE);
-                  input.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
-                  
-                  Button sendBtn = new Button(this);
-                  sendBtn.setText("SEND"); 
-                  sendBtn.setTextColor(Color.parseColor("#4CAF50")); // GREEN SEND
-                  sendBtn.setBackgroundColor(Color.TRANSPARENT);
-                  sendBtn.setOnClickListener(v -> processQuestion());
-                  
-                  bottomBar.addView(micBtn); bottomBar.addView(input); bottomBar.addView(sendBtn);
-                  
-                  root.addView(header); root.addView(scrollView); root.addView(bottomBar);
+                  root.addView(title); root.addView(scrollView); root.addView(input); root.addView(send);
                   setContentView(root);
                   new Thread(this::copyM).start();
               }
               
-              @Override
-              protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-                  super.onActivityResult(requestCode, resultCode, data);
-                  if(requestCode == 100 && resultCode == RESULT_OK && data != null) {
-                      ArrayList<String> res = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                      if(res != null && !res.isEmpty()) input.setText(res.get(0));
-                  }
-              }
-
-              private void processQuestion() {
-                  String question = input.getText().toString();
-                  if(!question.isEmpty() && !path.isEmpty()) {
-                      addText("You: " + question, "#0284C7"); // BLUE USER
-                      input.setText("");
-                      addText("Zeeshan AI: Fast Loop Active...", "#D29922");
-                      
-                      // Format prompt minimally due to 200 ctx limit
-                      liveChatHistory = "User: " + question + "\nAI:";
-                      
-                      new Thread(() -> {
-                          String r = askZNative(liveChatHistory, path);
-                          runOnUiThread(() -> {
-                              chat.removeViewAt(chat.getChildCount() - 1); // remove loading
-                              addText("Zeeshan AI: " + r, "#4CAF50"); // GREEN AI
-                              saveChatHistory(liveChatHistory + r);
-                              tts.speak(r, TextToSpeech.QUEUE_FLUSH, null, null);
-                          });
-                      }).start();
-                  }
-              }
-
-              private void saveChatHistory(String text) {
-                  try {
-                      if(chatVaultFile.length() + text.getBytes().length > VAULT_CHAT_200MB) {
-                           new PrintWriter(chatVaultFile).close(); 
-                      }
-                      FileOutputStream fos = new FileOutputStream(chatVaultFile, true);
-                      fos.write((text + "\n").getBytes());
-                      fos.close();
-                  } catch (Exception e){}
-              }
-
-              private void loadChatHistory() {
-                  try {
-                      FileInputStream fis = new FileInputStream(chatVaultFile);
-                      byte[] data = new byte[(int) chatVaultFile.length()];
-                      fis.read(data); fis.close();
-                  } catch (Exception e){}
-              }
-
               private void addText(String txt, String color) {
                   TextView tv = new TextView(this); tv.setText(txt);
-                  tv.setTextColor(Color.parseColor(color)); tv.setPadding(0, 15, 0, 15); tv.setTextSize(16);
-                  chat.addView(tv);
+                  tv.setTextColor(Color.parseColor(color));
+                  tv.setPadding(0, 10, 0, 10); chat.addView(tv);
                   scrollView.post(() -> scrollView.fullScroll(ScrollView.FOCUS_DOWN));
               }
 
@@ -379,7 +242,7 @@ jobs:
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
-              <application android:icon="@drawable/ic_z_logo" android:label="Zeeshan AI chat" android:theme="@style/AppTheme">
+              <application android:icon="@drawable/ic_z_logo" android:label="Z+² Chat" android:theme="@style/Theme.AppCompat.Light.NoActionBar">
                   <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
@@ -397,8 +260,8 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: 10. Upload Final APK
+      - name: 10. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Zeeshan-AI-Ultra-Lite-CTX
+          name: Zeeshan-ZPlus2-Chat
           path: app/build/outputs/apk/debug/*.apk
