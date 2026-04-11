@@ -57,7 +57,6 @@ jobs:
       - name: 6. Setup Tech Icon & Llama Engine
         run: |
           git clone --branch b3561 --depth 1 https://github.com/ggml-org/llama.cpp.git app/src/main/cpp/llama
-          # Samsung A12 Friendly Tech Logo
           wget -q --show-progress "https://cdn-icons-png.flaticon.com/512/2103/2103633.png" -O app/src/main/res/drawable/ic_z_logo.png
 
       - name: 7. Write C++ Engine (100% Thinking Loop Accelerator)
@@ -89,8 +88,8 @@ jobs:
               if (!model) return env->NewStringUTF("Error: Triple Vault Brain Failed!");
 
               auto cparams = llama_context_default_params();
-              cparams.n_ctx = 512; // Adjusted for PDF text injection
-              cparams.n_threads = 4; // Helio P35 core safety
+              cparams.n_ctx = 512; 
+              cparams.n_threads = 4; 
               llama_context * ctx = llama_new_context_with_model(model, cparams);
 
               std::vector<llama_token> tokens(512);
@@ -101,7 +100,6 @@ jobs:
               std::string ai_reply = "";
               int n_vocab = llama_n_vocab(model);
 
-              // 🚀 100% THINKING LOOP ACCELERATOR 🚀
               for (int step = 0; step < 262; step++) {
                   float * logits = llama_get_logits_ith(ctx, batch.n_tokens - 1);
                   llama_token id = 0; float max_p = -1e9f;
@@ -155,6 +153,7 @@ jobs:
           import android.speech.RecognizerIntent;
           import android.speech.tts.TextToSpeech;
           import android.view.Gravity;
+          import android.view.View; /* Bada fix yahan hai: View import add ho gaya */
           import android.widget.*;
           import androidx.appcompat.app.AppCompatActivity;
           import androidx.core.app.ActivityCompat;
@@ -171,7 +170,6 @@ jobs:
               private ScrollView scrollView;
               private TextToSpeech tts; 
               
-              // Triple-Vault Partitioning
               private File vaultModel, vaultChat, vaultDoc;
 
               static { System.loadLibrary("z2_engine"); }
@@ -182,7 +180,6 @@ jobs:
                   super.onCreate(savedInstanceState);
                   ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
                   
-                  // Initialize Triple Vault
                   vaultModel = new File(getFilesDir(), "Vault_Model_400MB");
                   vaultChat = new File(getFilesDir(), "Vault_Chat_150MB");
                   vaultDoc = new File(getFilesDir(), "Vault_Doc_150MB");
@@ -208,7 +205,7 @@ jobs:
 
                   TextView title = new TextView(this);
                   title.setText(" Zeeshan Z+² Chat");
-                  title.setTextColor(Color.parseColor("#0284C7")); // BLUE
+                  title.setTextColor(Color.parseColor("#0284C7")); 
                   title.setTextSize(22);
                   header.addView(title, new LinearLayout.LayoutParams(0, -2, 1f));
                   
@@ -268,7 +265,7 @@ jobs:
                       try {
                           InputStream is = getContentResolver().openInputStream(data.getData());
                           PdfReader reader = new PdfReader(is);
-                          pdfContext = PdfTextExtractor.getTextFromPage(reader, 1); // Extract first page for Brain Merge
+                          pdfContext = PdfTextExtractor.getTextFromPage(reader, 1); 
                           addText("System: PDF Merged with AI Brain! ✅", "#4CAF50");
                       } catch (Exception e) {}
                   }
@@ -279,7 +276,6 @@ jobs:
                   if(!q.isEmpty() && !path.isEmpty()){
                       addText("You: " + q, "#0284C7"); input.setText("");
                       new Thread(() -> {
-                          // PDF Context + User Question = Combined Thinking
                           String fullPrompt = pdfContext + "\nUser: " + q + "\nAI:";
                           String r = askZNative(fullPrompt, path);
                           runOnUiThread(() -> {
