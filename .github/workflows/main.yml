@@ -1,4 +1,4 @@
-name: Build Zeeshan Husain Smile Pro Calculator 2026
+name: Build Zeeshan Husain Smile Pro Calculator
 
 on:
   push:
@@ -12,13 +12,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21 (2026 Standard)
+      - name: Set up JDK 17 (Stable Standard)
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
 
-      - name: 1. Setup App Folders (Moved Up to Fix Error)
+      - name: 1. Setup App Folders
         run: |
           mkdir -p app/src/main/java/com/zeeshan/calculator
           mkdir -p app/src/main/res/values
@@ -43,30 +43,30 @@ jobs:
 
           cat << 'EOF' > build.gradle
           plugins {
-              id 'com.android.application' version '8.7.0' apply false
+              id 'com.android.application' version '8.3.0' apply false
           }
           EOF
 
       - name: 3. Generate Gradle Wrapper
-        run: gradle wrapper --gradle-version 8.10
+        run: gradle wrapper --gradle-version 8.4
 
-      - name: 4. App Build Config (Targeting Android 16/SDK 36)
+      - name: 4. App Build Config (Targeting Stable Android SDK 34)
         run: |
           cat << 'EOF' > app/build.gradle
           plugins { id 'com.android.application' }
           android {
               namespace 'com.zeeshan.calculator'
-              compileSdk 36
+              compileSdk 34
               defaultConfig {
                   applicationId 'com.zeeshan.calculator'
                   minSdk 26
-                  targetSdk 36
-                  versionCode 3
-                  versionName "3.0-2026-Ready"
+                  targetSdk 34
+                  versionCode 4
+                  versionName "4.0-Pro-Stable"
               }
               compileOptions { 
-                  sourceCompatibility JavaVersion.VERSION_21
-                  targetCompatibility JavaVersion.VERSION_21 
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17 
               }
           }
           dependencies {
@@ -75,7 +75,7 @@ jobs:
           }
           EOF
 
-      - name: 5. Themes, Colors & Drawables (Neumorphic Style)
+      - name: 5. Themes, Colors & Drawables
         run: |
           cat << 'EOF' > app/src/main/res/values/colors.xml
           <resources>
@@ -117,7 +117,7 @@ jobs:
           cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher.xml
           cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher_round.xml
 
-      - name: 7. Create UI Layout (activity_main.xml)
+      - name: 7. Create UI Layout
         run: |
           cat << 'EOF' > app/src/main/res/layout/activity_main.xml
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -276,7 +276,7 @@ jobs:
                   } else if (btnText.equals("MIC")) {
                       startVoiceInput();
                   } else if (btnText.equals("=")) {
-                      calculateResult();
+                          calculateResult();
                   } else {
                       if (isOperator(btnText.charAt(0)) && currentExpression.length() > 0) {
                           char lastChar = currentExpression.charAt(currentExpression.length() - 1);
@@ -391,5 +391,5 @@ jobs:
       - name: 11. Upload Final Pro APK
         uses: actions/upload-artifact@v4
         with:
-          name: Zeeshan-Husain-Smile-Voice-Pro-Calc-2026
+          name: Zeeshan-Husain-Smile-Voice-Pro-Calc
           path: app/build/outputs/apk/debug/app-debug.apk
