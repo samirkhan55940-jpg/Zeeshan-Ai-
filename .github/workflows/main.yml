@@ -47,10 +47,18 @@ jobs:
           }
           EOF
 
-      - name: 3. Generate Gradle Wrapper
+      - name: 3. Setup Gradle Properties (100% FIX FOR DEPENDENCY CRASH)
+        run: |
+          cat << 'EOF' > gradle.properties
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          android.enableJetifier=true
+          EOF
+
+      - name: 4. Generate Gradle Wrapper
         run: gradle wrapper --gradle-version 8.4
 
-      - name: 4. App Build Config (Targeting Stable Android SDK 34)
+      - name: 5. App Build Config (Targeting Stable Android SDK 34)
         run: |
           cat << 'EOF' > app/build.gradle
           plugins { id 'com.android.application' }
@@ -75,7 +83,7 @@ jobs:
           }
           EOF
 
-      - name: 5. Themes, Colors & Drawables
+      - name: 6. Themes, Colors & Drawables
         run: |
           cat << 'EOF' > app/src/main/res/values/colors.xml
           <resources>
@@ -104,7 +112,7 @@ jobs:
           </shape>
           EOF
 
-      - name: 6. Create Launcher Icons
+      - name: 7. Create Launcher Icons
         run: |
           cat << 'EOF' > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -117,7 +125,7 @@ jobs:
           cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher.xml
           cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher_round.xml
 
-      - name: 7. Create UI Layout
+      - name: 8. Create UI Layout
         run: |
           cat << 'EOF' > app/src/main/res/layout/activity_main.xml
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -170,7 +178,7 @@ jobs:
           </LinearLayout>
           EOF
 
-      - name: 8. Write AndroidManifest
+      - name: 9. Write AndroidManifest
         run: |
           cat << 'EOF' > app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -188,7 +196,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: 9. Write Pro Math Engine & Voice Logic
+      - name: 10. Write Pro Math Engine & Voice Logic
         run: |
           cat << 'EOF' > app/src/main/java/com/zeeshan/calculator/MainActivity.java
           package com.zeeshan.calculator;
@@ -383,12 +391,12 @@ jobs:
           }
           EOF
 
-      - name: 10. Build Final APK
+      - name: 11. Build Final APK
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace --info
 
-      - name: 11. Upload Final Pro APK
+      - name: 12. Upload Final Pro APK
         uses: actions/upload-artifact@v4
         with:
           name: Zeeshan-Husain-Smile-Voice-Pro-Calc
