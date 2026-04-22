@@ -18,7 +18,16 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: 1. Setup Root Files
+      - name: 1. Setup App Folders (Moved Up to Fix Error)
+        run: |
+          mkdir -p app/src/main/java/com/zeeshan/calculator
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/layout
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/mipmap-anydpi-v26
+          mkdir -p app/src/main/res/mipmap-xhdpi
+
+      - name: 2. Setup Root Files
         run: |
           cat << 'EOF' > settings.gradle
           pluginManagement {
@@ -38,17 +47,8 @@ jobs:
           }
           EOF
 
-      - name: 2. Generate Gradle Wrapper (Updated for JDK 21)
+      - name: 3. Generate Gradle Wrapper
         run: gradle wrapper --gradle-version 8.10
-
-      - name: 3. Setup App Folders (With Fallback Mipmaps)
-        run: |
-          mkdir -p app/src/main/java/com/zeeshan/calculator
-          mkdir -p app/src/main/res/values
-          mkdir -p app/src/main/res/layout
-          mkdir -p app/src/main/res/drawable
-          mkdir -p app/src/main/res/mipmap-anydpi-v26
-          mkdir -p app/src/main/res/mipmap-xhdpi
 
       - name: 4. App Build Config (Targeting Android 16/SDK 36)
         run: |
@@ -104,7 +104,7 @@ jobs:
           </shape>
           EOF
 
-      - name: 6. Create Launcher Icons (Fixes Resource Merger Crash)
+      - name: 6. Create Launcher Icons
         run: |
           cat << 'EOF' > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -114,7 +114,6 @@ jobs:
           EOF
           cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
           
-          # Fallback for older devices / compiler requirements
           cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher.xml
           cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher_round.xml
 
@@ -171,15 +170,13 @@ jobs:
           </LinearLayout>
           EOF
 
-      - name: 8. Write AndroidManifest (Added Audio & Vibrate Permissions)
+      - name: 8. Write AndroidManifest
         run: |
           cat << 'EOF' > app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
               <uses-permission android:name="android.permission.VIBRATE" />
-              
               <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>
-              
               <application android:label="ZH Pro Calc" android:theme="@style/Theme.ZeeshanCalc" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
                   <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter>
@@ -191,7 +188,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: 9. Write Pro Math Engine & Voice Logic (Java)
+      - name: 9. Write Pro Math Engine & Voice Logic
         run: |
           cat << 'EOF' > app/src/main/java/com/zeeshan/calculator/MainActivity.java
           package com.zeeshan.calculator;
@@ -230,12 +227,10 @@ jobs:
                   display = findViewById(R.id.tv_display);
                   vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-                  // Setup Text-To-Speech
                   tts = new TextToSpeech(this, status -> {
                       if (status == TextToSpeech.SUCCESS) tts.setLanguage(new Locale("en", "IN"));
                   });
 
-                  // Setup Speech Recognizer
                   if (SpeechRecognizer.isRecognitionAvailable(this)) {
                       speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
                       speechRecognizer.setRecognitionListener(new RecognitionListener() {
@@ -267,7 +262,6 @@ jobs:
               }
 
               private void onButtonClick(Button button) {
-                  // Haptic Feedback
                   if (vibrator != null && vibrator.hasVibrator()) { vibrator.vibrate(30); }
                   
                   String btnText = button.getText().toString();
@@ -284,11 +278,10 @@ jobs:
                   } else if (btnText.equals("=")) {
                       calculateResult();
                   } else {
-                      // Input Validation to prevent consecutive operators
                       if (isOperator(btnText.charAt(0)) && currentExpression.length() > 0) {
                           char lastChar = currentExpression.charAt(currentExpression.length() - 1);
                           if (isOperator(lastChar)) {
-                              currentExpression.deleteCharAt(currentExpression.length() - 1); // Replace operator
+                              currentExpression.deleteCharAt(currentExpression.length() - 1);
                           }
                       }
                       if (display.getText().toString().equals("0") || display.getText().toString().equals("Error")) {
@@ -344,7 +337,6 @@ jobs:
                   }
               }
 
-              // Pro Math Engine - Handles Percentage (%), Power (^), and Sqrt (s)
               private double eval(final String str) {
                   return new Object() {
                       int pos = -1, ch;
@@ -396,7 +388,7 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: 11. Upload Final Pro APK (Updated Node 20 Version)
+      - name: 11. Upload Final Pro APK
         uses: actions/upload-artifact@v4
         with:
           name: Zeeshan-Husain-Smile-Voice-Pro-Calc-2026
