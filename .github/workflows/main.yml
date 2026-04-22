@@ -1,4 +1,4 @@
-name: Build Zeeshan ZPlus2 Lite Edition
+name: Build Zeeshan Husain Smile Pro Calculator 2026
 
 on:
   push:
@@ -9,293 +9,178 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Checkout Code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: 2. Set up JDK 17
+      - name: Set up JDK 21 (2026 Standard)
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
-      - name: 3. Setup Android NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r25c
-
-      - name: 4. Create Lite Project Structure
+      - name: 1. Setup Root Files
         run: |
-          mkdir -p app/src/main/java/com/zeeshan/ai
-          mkdir -p app/src/main/res/values
-          mkdir -p app/src/main/res/drawable
-          mkdir -p app/src/main/assets
-          mkdir -p app/src/main/cpp
-          
           cat << 'EOF' > settings.gradle
-          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
-          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS); repositories { google(); mavenCentral() } }
-          rootProject.name = "ZPlus2Chat"
+          pluginManagement {
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories { google(); mavenCentral() }
+          }
+          rootProject.name = "ZeeshanCalc"
           include ':app'
           EOF
 
           cat << 'EOF' > build.gradle
-          buildscript {
-              repositories { google(); mavenCentral() }
-              dependencies { classpath 'com.android.tools.build:gradle:8.2.0' }
-          }
-          allprojects { repositories { google(); mavenCentral() } }
-          EOF
-
-          echo "android.useAndroidX=true
-          android.enableJetifier=true
-          org.gradle.jvmargs=-Xmx4g" > gradle.properties
-
-      - name: 5. Download Qwen-0.5B (350MB Brain)
-        run: |
-          wget -q --show-progress https://huggingface.co/Qwen/Qwen1.5-0.5B-Chat-GGUF/resolve/main/qwen1_5-0_5b-chat-q4_k_m.gguf -O app/src/main/assets/z_model.gguf
-
-      - name: 6. Setup Tech Icon & Engine
-        run: |
-          git clone --branch b3561 --depth 1 https://github.com/ggml-org/llama.cpp.git app/src/main/cpp/llama
-          wget -q --show-progress "https://cdn-icons-png.flaticon.com/512/2103/2103633.png" -O app/src/main/res/drawable/ic_z_logo.png
-
-      - name: 7. Write C++ Engine (262 Thinking Loop Accelerator)
-        run: |
-          cat << 'EOF' > app/src/main/cpp/CMakeLists.txt
-          cmake_minimum_required(VERSION 3.22.1)
-          project("z2_engine")
-          add_subdirectory(llama)
-          add_library(${CMAKE_PROJECT_NAME} SHARED native-lib.cpp)
-          target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE llama/include llama)
-          target_link_libraries(${CMAKE_PROJECT_NAME} llama log)
-          EOF
-
-          cat << 'EOF' > app/src/main/cpp/native-lib.cpp
-          #include <jni.h>
-          #include <string>
-          #include <vector>
-          #include "llama.h"
-
-          extern "C" JNIEXPORT jstring JNICALL
-          Java_com_zeeshan_ai_MainActivity_askZNative(JNIEnv* env, jobject, jstring prompt, jstring modelPath) {
-              const char *userText = env->GetStringUTFChars(prompt, 0);
-              const char *path = env->GetStringUTFChars(modelPath, 0);
-              
-              llama_backend_init();
-              auto mparams = llama_model_default_params();
-              mparams.n_gpu_layers = 0; 
-              llama_model * model = llama_load_model_from_file(path, mparams);
-              if (!model) return env->NewStringUTF("Error: Engine Failed!");
-
-              auto cparams = llama_context_default_params();
-              cparams.n_ctx = 200; // Fast and light for Samsung A12
-              cparams.n_threads = 4;
-              llama_context * ctx = llama_new_context_with_model(model, cparams);
-
-              std::vector<llama_token> tokens(200);
-              int n_tokens = llama_tokenize(model, userText, strlen(userText), tokens.data(), tokens.size(), true, true);
-              llama_batch batch = llama_batch_get_one(tokens.data(), (n_tokens > 190 ? 190 : n_tokens), 0, 0);
-              llama_decode(ctx, batch);
-
-              std::string ai_reply = "";
-              int n_vocab = llama_n_vocab(model);
-
-              // 🚀 262-WORD THINKING LOOP 🚀
-              for (int step = 0; step < 262; step++) {
-                  float * logits = llama_get_logits_ith(ctx, batch.n_tokens - 1);
-                  llama_token id = 0; float max_p = -1e9f;
-                  for (int i = 0; i < n_vocab; i++) { if (logits[i] > max_p) { max_p = logits[i]; id = i; } }
-                  if (llama_token_is_eog(model, id)) break; 
-                  char buf[128];
-                  int n = llama_token_to_piece(model, id, buf, sizeof(buf), 0, true);
-                  if (n > 0) ai_reply += std::string(buf, n);
-                  batch = llama_batch_get_one(&id, 1, n_tokens + step, 0);
-                  if (llama_decode(ctx, batch) != 0) break;
-              }
-
-              llama_free(ctx); llama_free_model(model); llama_backend_free();
-              env->ReleaseStringUTFChars(prompt, userText);
-              env->ReleaseStringUTFChars(modelPath, path);
-              return env->NewStringUTF(ai_reply.c_str());
+          plugins {
+              id 'com.android.application' version '8.7.0' apply false
           }
           EOF
 
-      - name: 8. Write Java UI (500MB Vault & Mic Feature)
+      - name: 2. Generate Gradle Wrapper (Updated for JDK 21)
+        run: gradle wrapper --gradle-version 8.10
+
+      - name: 3. Setup App Folders (With Fallback Mipmaps)
+        run: |
+          mkdir -p app/src/main/java/com/zeeshan/calculator
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/layout
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/mipmap-anydpi-v26
+          mkdir -p app/src/main/res/mipmap-xhdpi
+
+      - name: 4. App Build Config (Targeting Android 16/SDK 36)
         run: |
           cat << 'EOF' > app/build.gradle
-          apply plugin: 'com.android.application'
+          plugins { id 'com.android.application' }
           android {
-              namespace 'com.zeeshan.ai'
-              compileSdk 34
+              namespace 'com.zeeshan.calculator'
+              compileSdk 36
               defaultConfig {
-                  applicationId 'com.zeeshan.ai'
-                  minSdk 24
-                  targetSdk 34
-                  versionCode 1
-                  versionName "43.0-Lite-500MB"
-                  ndk { abiFilters 'arm64-v8a' }
+                  applicationId 'com.zeeshan.calculator'
+                  minSdk 26
+                  targetSdk 36
+                  versionCode 3
+                  versionName "3.0-2026-Ready"
               }
-              aaptOptions { noCompress 'gguf' }
-              externalNativeBuild { cmake { path "src/main/cpp/CMakeLists.txt" } }
+              compileOptions { 
+                  sourceCompatibility JavaVersion.VERSION_21
+                  targetCompatibility JavaVersion.VERSION_21 
+              }
           }
-          dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }
-          EOF
-
-          cat << 'EOF' > app/src/main/java/com/zeeshan/ai/MainActivity.java
-          package com.zeeshan.ai;
-          import android.Manifest;
-          import android.content.Intent;
-          import android.graphics.Color;
-          import android.os.Bundle;
-          import android.speech.RecognizerIntent;
-          import android.speech.tts.TextToSpeech;
-          import android.view.Gravity;
-          import android.view.View;
-          import android.widget.*;
-          import androidx.appcompat.app.AppCompatActivity;
-          import androidx.core.app.ActivityCompat;
-          import java.io.*;
-          import java.util.ArrayList;
-          import java.util.Locale;
-
-          public class MainActivity extends AppCompatActivity {
-              private String path = "";
-              private LinearLayout chat;
-              private EditText input;
-              private ScrollView scrollView;
-              private TextToSpeech tts; 
-              private final long VAULT_500MB = 524288000L; // STRICT 500MB LIMIT
-
-              static { System.loadLibrary("z2_engine"); }
-              public native String askZNative(String p, String m);
-
-              @Override
-              protected void onCreate(Bundle savedInstanceState) {
-                  super.onCreate(savedInstanceState);
-                  ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
-
-                  tts = new TextToSpeech(this, status -> {
-                      if(status == TextToSpeech.SUCCESS) tts.setLanguage(new Locale("hi", "IN"));
-                  });
-
-                  LinearLayout root = new LinearLayout(this);
-                  root.setOrientation(LinearLayout.VERTICAL);
-                  root.setBackgroundColor(Color.BLACK);
-                  root.setPadding(20, 20, 20, 20);
-                  
-                  // Header
-                  LinearLayout header = new LinearLayout(this);
-                  header.setGravity(Gravity.CENTER_VERTICAL);
-                  ImageView logo = new ImageView(this);
-                  logo.setImageResource(R.drawable.ic_z_logo);
-                  header.addView(logo, new LinearLayout.LayoutParams(100, 100));
-
-                  TextView title = new TextView(this);
-                  title.setText(" Zeeshan Z+² Chat");
-                  title.setTextColor(Color.parseColor("#0284C7"));
-                  title.setTextSize(22);
-                  header.addView(title, new LinearLayout.LayoutParams(0, -2, 1f));
-                  
-                  // Menu for 500MB Reset
-                  TextView menu = new TextView(this);
-                  menu.setText("⋮"); menu.setTextColor(Color.GREEN); menu.setTextSize(35);
-                  menu.setPadding(20, 0, 20, 0);
-                  menu.setOnClickListener(v -> {
-                      PopupMenu p = new PopupMenu(this, v);
-                      p.getMenu().add("♻️ Clear 500MB Memory");
-                      p.setOnMenuItemClickListener(item -> {
-                          chat.removeAllViews();
-                          Toast.makeText(this, "Memory Cleaned!", Toast.LENGTH_SHORT).show();
-                          return true;
-                      });
-                      p.show();
-                  });
-                  header.addView(menu);
-
-                  scrollView = new ScrollView(this);
-                  scrollView.setLayoutParams(new LinearLayout.LayoutParams(-1, 0, 1f));
-                  chat = new LinearLayout(this); chat.setOrientation(LinearLayout.VERTICAL);
-                  scrollView.addView(chat);
-                  
-                  // Bottom Bar with Mic
-                  LinearLayout bottom = new LinearLayout(this);
-                  bottom.setOrientation(LinearLayout.HORIZONTAL);
-                  bottom.setGravity(Gravity.CENTER_VERTICAL);
-
-                  Button mic = new Button(this);
-                  mic.setText("🎤"); mic.setTextSize(25); mic.setBackgroundColor(Color.TRANSPARENT);
-                  mic.setOnClickListener(v -> {
-                      Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                      intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                      startActivityForResult(intent, 100);
-                  });
-
-                  input = new EditText(this); input.setHint("Yahan likhein..."); input.setTextColor(Color.WHITE);
-                  input.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
-
-                  Button send = new Button(this); send.setText("SEND"); send.setTextColor(Color.GREEN);
-                  send.setOnClickListener(v -> startThinking());
-
-                  bottom.addView(mic); bottom.addView(input); bottom.addView(send);
-                  
-                  root.addView(header); root.addView(scrollView); root.addView(bottom);
-                  setContentView(root);
-                  new Thread(this::copyM).start();
-              }
-
-              @Override
-              protected void onActivityResult(int req, int res, Intent data) {
-                  super.onActivityResult(req, res, data);
-                  if(req == 100 && res == RESULT_OK && data != null) {
-                      ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                      if(result != null) input.setText(result.get(0));
-                  }
-              }
-
-              private void startThinking() {
-                  String q = input.getText().toString();
-                  if(!q.isEmpty() && !path.isEmpty()){
-                      addText("You: " + q, "#0284C7");
-                      input.setText("");
-                      addText("Z+²: Soch raha hoon... ⏳", "#D29922");
-                      new Thread(() -> {
-                          String r = askZNative(q, path);
-                          runOnUiThread(() -> {
-                              chat.removeViewAt(chat.getChildCount() - 1); // Remove loading text
-                              addText("Z+²: " + r, "#4CAF50");
-                              tts.speak(r, TextToSpeech.QUEUE_FLUSH, null, null);
-                          });
-                      }).start();
-                  }
-              }
-
-              private void addText(String txt, String color) {
-                  TextView tv = new TextView(this); tv.setText(txt); tv.setTextColor(Color.parseColor(color));
-                  tv.setPadding(0, 15, 0, 15); tv.setTextSize(17);
-                  chat.addView(tv);
-                  scrollView.post(() -> scrollView.fullScroll(ScrollView.FOCUS_DOWN));
-              }
-
-              private void copyM() {
-                  try {
-                      File f = new File(getFilesDir(), "z_model.gguf"); path = f.getAbsolutePath();
-                      if (!f.exists()) {
-                          InputStream is = getAssets().open("z_model.gguf");
-                          FileOutputStream os = new FileOutputStream(f);
-                          byte[] b = new byte[8192]; int l;
-                          while ((l = is.read(b)) > 0) os.write(b, 0, l);
-                          os.close(); is.close();
-                      }
-                  } catch (Exception e) {}
-              }
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.11.0'
           }
           EOF
 
+      - name: 5. Themes, Colors & Drawables (Neumorphic Style)
+        run: |
+          cat << 'EOF' > app/src/main/res/values/colors.xml
+          <resources>
+              <color name="bg_color">#2C3333</color>
+              <color name="btn_color">#395B64</color>
+              <color name="text_color">#E7F6F2</color>
+              <color name="accent_color">#F582A7</color>
+              <color name="mic_color">#E53935</color>
+          </resources>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/values/themes.xml
+          <resources>
+              <style name="Theme.ZeeshanCalc" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+                  <item name="colorPrimary">@color/accent_color</item>
+                  <item name="android:statusBarColor">@color/bg_color</item>
+              </style>
+          </resources>
+          EOF
+          
+          cat << 'EOF' > app/src/main/res/drawable/bg_button.xml
+          <shape xmlns:android="http://schemas.android.com/apk/res/android">
+              <solid android:color="@color/btn_color"/>
+              <corners android:radius="16dp"/>
+              <stroke android:width="1dp" android:color="#5A7D8A"/>
+          </shape>
+          EOF
+
+      - name: 6. Create Launcher Icons (Fixes Resource Merger Crash)
+        run: |
+          cat << 'EOF' > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+              <path android:fillColor="@color/accent_color" android:pathData="M0,0h108v108h-108z"/>
+          </vector>
+          EOF
+          cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+          
+          # Fallback for older devices / compiler requirements
+          cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher.xml
+          cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher_round.xml
+
+      - name: 7. Create UI Layout (activity_main.xml)
+        run: |
+          cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent" android:layout_height="match_parent"
+              android:orientation="vertical" android:background="@color/bg_color" android:padding="16dp">
+              
+              <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                  android:text="Zeeshan Husain Smile Pro AI Calc" android:textColor="@color/accent_color"
+                  android:textSize="14sp" android:textStyle="bold" android:gravity="center" android:padding="8dp"/>
+
+              <TextView android:id="@+id/tv_display"
+                  android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+                  android:gravity="bottom|end" android:text="0" android:textColor="@color/text_color"
+                  android:textSize="56sp" android:padding="16dp" android:maxLines="2" android:autoSizeTextType="uniform"/>
+
+              <GridLayout android:id="@+id/grid_layout"
+                  android:layout_width="match_parent" android:layout_height="wrap_content"
+                  android:columnCount="4" android:rowCount="6" android:useDefaultMargins="true" android:alignmentMode="alignBounds">
+                  
+                  <Button android:text="AC" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="(" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text=")" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="/" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+
+                  <Button android:text="7" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="8" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="9" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="*" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+
+                  <Button android:text="4" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="5" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="6" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="-" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+
+                  <Button android:text="1" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="2" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="3" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="+" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+
+                  <Button android:text="0" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="." android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="DEL" android:background="@drawable/bg_button" android:textColor="#FFB74D" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="=" android:backgroundTint="@color/accent_color" android:textColor="@color/bg_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+
+                  <Button android:text="%" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="^" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="sqrt" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <Button android:text="MIC" android:backgroundTint="@color/mic_color" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+              </GridLayout>
+          </LinearLayout>
+          EOF
+
+      - name: 8. Write AndroidManifest (Added Audio & Vibrate Permissions)
+        run: |
           cat << 'EOF' > app/src/main/AndroidManifest.xml
-          <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
-              <application android:icon="@drawable/ic_z_logo" android:label="Z+² Chat" android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+              <uses-permission android:name="android.permission.VIBRATE" />
+              
+              <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>
+              
+              <application android:label="ZH Pro Calc" android:theme="@style/Theme.ZeeshanCalc" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
                   <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
@@ -306,14 +191,213 @@ jobs:
           </manifest>
           EOF
 
-      - name: 9. Final Build
+      - name: 9. Write Pro Math Engine & Voice Logic (Java)
         run: |
-          gradle wrapper --gradle-version 8.5
+          cat << 'EOF' > app/src/main/java/com/zeeshan/calculator/MainActivity.java
+          package com.zeeshan.calculator;
+          import android.Manifest;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.pm.PackageManager;
+          import android.os.Bundle;
+          import android.os.Vibrator;
+          import android.speech.RecognitionListener;
+          import android.speech.RecognizerIntent;
+          import android.speech.SpeechRecognizer;
+          import android.speech.tts.TextToSpeech;
+          import android.view.View;
+          import android.widget.Button;
+          import android.widget.GridLayout;
+          import android.widget.TextView;
+          import android.widget.Toast;
+          import androidx.appcompat.app.AppCompatActivity;
+          import androidx.core.app.ActivityCompat;
+          import androidx.core.content.ContextCompat;
+          import java.util.ArrayList;
+          import java.util.Locale;
+
+          public class MainActivity extends AppCompatActivity {
+              private TextToSpeech tts;
+              private SpeechRecognizer speechRecognizer;
+              private TextView display;
+              private StringBuilder currentExpression = new StringBuilder();
+              private Vibrator vibrator;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_main);
+                  display = findViewById(R.id.tv_display);
+                  vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+                  // Setup Text-To-Speech
+                  tts = new TextToSpeech(this, status -> {
+                      if (status == TextToSpeech.SUCCESS) tts.setLanguage(new Locale("en", "IN"));
+                  });
+
+                  // Setup Speech Recognizer
+                  if (SpeechRecognizer.isRecognitionAvailable(this)) {
+                      speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+                      speechRecognizer.setRecognitionListener(new RecognitionListener() {
+                          @Override public void onReadyForSpeech(Bundle params) {}
+                          @Override public void onBeginningOfSpeech() { display.setText("Listening..."); }
+                          @Override public void onRmsChanged(float rmsdB) {}
+                          @Override public void onBufferReceived(byte[] buffer) {}
+                          @Override public void onEndOfSpeech() {}
+                          @Override public void onError(int error) { display.setText(currentExpression.toString()); }
+                          @Override public void onResults(Bundle results) {
+                              ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                              if (matches != null && !matches.isEmpty()) {
+                                  String spokenText = matches.get(0).toLowerCase();
+                                  processVoiceCommand(spokenText);
+                              }
+                          }
+                          @Override public void onPartialResults(Bundle partialResults) {}
+                          @Override public void onEvent(int eventType, Bundle params) {}
+                      });
+                  }
+
+                  GridLayout grid = findViewById(R.id.grid_layout);
+                  for (int i = 0; i < grid.getChildCount(); i++) {
+                      View child = grid.getChildAt(i);
+                      if (child instanceof Button) {
+                          child.setOnClickListener(v -> onButtonClick((Button) v));
+                      }
+                  }
+              }
+
+              private void onButtonClick(Button button) {
+                  // Haptic Feedback
+                  if (vibrator != null && vibrator.hasVibrator()) { vibrator.vibrate(30); }
+                  
+                  String btnText = button.getText().toString();
+                  if (btnText.equals("AC")) {
+                      currentExpression.setLength(0);
+                      display.setText("0");
+                  } else if (btnText.equals("DEL")) {
+                      if (currentExpression.length() > 0) {
+                          currentExpression.deleteCharAt(currentExpression.length() - 1);
+                          display.setText(currentExpression.length() == 0 ? "0" : currentExpression.toString());
+                      }
+                  } else if (btnText.equals("MIC")) {
+                      startVoiceInput();
+                  } else if (btnText.equals("=")) {
+                      calculateResult();
+                  } else {
+                      // Input Validation to prevent consecutive operators
+                      if (isOperator(btnText.charAt(0)) && currentExpression.length() > 0) {
+                          char lastChar = currentExpression.charAt(currentExpression.length() - 1);
+                          if (isOperator(lastChar)) {
+                              currentExpression.deleteCharAt(currentExpression.length() - 1); // Replace operator
+                          }
+                      }
+                      if (display.getText().toString().equals("0") || display.getText().toString().equals("Error")) {
+                          if (!isOperator(btnText.charAt(0)) && !btnText.equals(".")) {
+                              currentExpression.setLength(0);
+                          }
+                      }
+                      currentExpression.append(btnText);
+                      display.setText(currentExpression.toString());
+                  }
+              }
+
+              private boolean isOperator(char c) { return c == '+' || c == '-' || c == '*' || c == '/' || c == '^'; }
+
+              private void startVoiceInput() {
+                  if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                      ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
+                  } else if (speechRecognizer != null) {
+                      Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                      intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                      intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+                      speechRecognizer.startListening(intent);
+                  }
+              }
+
+              private void processVoiceCommand(String text) {
+                  text = text.replace("plus", "+").replace("minus", "-")
+                             .replace("multiply", "*").replace("divided by", "/")
+                             .replace("divide", "/").replace("into", "*")
+                             .replace("x", "*").replaceAll("[^0-9+\\-*/().^%]", "");
+                  currentExpression.setLength(0);
+                  currentExpression.append(text);
+                  display.setText(currentExpression.toString());
+                  calculateResult();
+              }
+
+              private void calculateResult() {
+                  try {
+                      String mathExpression = currentExpression.toString().replace("sqrt", "s");
+                      if (mathExpression.isEmpty()) return;
+                      
+                      double result = eval(mathExpression);
+                      String finalResult = (result == (long) result) ? String.format(Locale.US, "%d", (long) result) : String.format(Locale.US, "%s", result);
+                      
+                      display.setText(finalResult);
+                      currentExpression.setLength(0);
+                      currentExpression.append(finalResult);
+
+                      if (tts != null) { tts.speak("Result is " + finalResult, TextToSpeech.QUEUE_FLUSH, null, null); }
+                  } catch (Exception e) {
+                      display.setText("Error");
+                      currentExpression.setLength(0);
+                  }
+              }
+
+              // Pro Math Engine - Handles Percentage (%), Power (^), and Sqrt (s)
+              private double eval(final String str) {
+                  return new Object() {
+                      int pos = -1, ch;
+                      void nextChar() { ch = (++pos < str.length()) ? str.charAt(pos) : -1; }
+                      boolean eat(int charToEat) {
+                          while (ch == ' ') nextChar();
+                          if (ch == charToEat) { nextChar(); return true; }
+                          return false;
+                      }
+                      double parse() { nextChar(); double x = parseExpression(); return x; }
+                      double parseExpression() {
+                          double x = parseTerm();
+                          for (;;) { if (eat('+')) x += parseTerm(); else if (eat('-')) x -= parseTerm(); else return x; }
+                      }
+                      double parseTerm() {
+                          double x = parseFactor();
+                          for (;;) { if (eat('*')) x *= parseFactor(); else if (eat('/')) x /= parseFactor(); else return x; }
+                      }
+                      double parseFactor() {
+                          if (eat('+')) return parseFactor(); if (eat('-')) return -parseFactor();
+                          double x;
+                          int startPos = this.pos;
+                          if (eat('(')) { x = parseExpression(); eat(')'); }
+                          else if ((ch >= '0' && ch <= '9') || ch == '.') { 
+                              while ((ch >= '0' && ch <= '9') || ch == '.') nextChar(); 
+                              x = Double.parseDouble(str.substring(startPos, this.pos)); 
+                          }
+                          else if (eat('s')) { x = Math.sqrt(parseFactor()); }
+                          else { throw new RuntimeException("Unexpected: " + (char)ch); }
+                          
+                          if (eat('^')) x = Math.pow(x, parseFactor());
+                          if (eat('%')) x = x / 100;
+                          return x;
+                      }
+                  }.parse();
+              }
+
+              @Override
+              protected void onDestroy() {
+                  if (tts != null) { tts.stop(); tts.shutdown(); }
+                  if (speechRecognizer != null) { speechRecognizer.destroy(); }
+                  super.onDestroy();
+              }
+          }
+          EOF
+
+      - name: 10. Build Final APK
+        run: |
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: 10. Upload Final APK
+      - name: 11. Upload Final Pro APK (Updated Node 20 Version)
         uses: actions/upload-artifact@v4
         with:
-          name: Zeeshan-ZPlus2-Lite
-          path: app/build/outputs/apk/debug/*.apk
+          name: Zeeshan-Husain-Smile-Voice-Pro-Calc-2026
+          path: app/build/outputs/apk/debug/app-debug.apk
