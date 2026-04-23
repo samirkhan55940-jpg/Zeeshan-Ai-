@@ -1,4 +1,4 @@
-name: Build Z+² AI Master (Max RAM + Hashing)
+name: "Build Z Plus 2 AI Master"
 
 on:
   push:
@@ -9,18 +9,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Checkout Code
+      - name: "1. Checkout Code"
         uses: actions/checkout@v4
 
-      - name: 2. Set up JDK 17 (Stable for Heavy Builds)
+      - name: "2. Set up JDK 17 (Stable for Heavy Builds)"
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 3. Create Architecture (Linguistic, Thinking, Logic, Narrative)
+      - name: "3. Create Architecture (Linguistic, Thinking, Logic, Narrative)"
         run: |
-          echo "Creating app directories..."
           mkdir -p app/src/main/java/com/zeeshan/calculator
           mkdir -p app/src/main/res/layout
           mkdir -p app/src/main/res/values
@@ -28,12 +27,10 @@ jobs:
           mkdir -p app/src/main/res/drawable
           mkdir -p app/src/main/res/mipmap-anydpi-v26
           mkdir -p app/src/main/res/mipmap-xhdpi
-          # Assets folder for real Diagrams/Photos
           mkdir -p app/src/main/assets
 
-      - name: 4. Pull Maximum Server RAM (8GB Environment Setup)
+      - name: "4. Initialize Gradle System (Heavy Mode 8GB RAM)"
         run: |
-          echo "Requesting Maximum RAM from GitHub Servers..."
           cat << 'EOF' > settings.gradle
           pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
           dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral(); maven { url 'https://jitpack.io' } } }
@@ -45,7 +42,6 @@ jobs:
           plugins { id 'com.android.application' version '8.3.0' apply false }
           EOF
 
-          # Pulling max safe RAM (6GB-8GB range)
           cat << 'EOF' > gradle.properties
           org.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8
           android.useAndroidX=true
@@ -54,7 +50,7 @@ jobs:
           
           gradle wrapper --gradle-version 8.4
 
-      - name: 5. Android Config & Symja Integration
+      - name: "5. Android Config & Symja Integration"
         run: |
           cat << 'EOF' > app/build.gradle
           plugins { id 'com.android.application' }
@@ -74,12 +70,11 @@ jobs:
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.6.1'
               implementation 'com.google.android.material:material:1.11.0'
-              // Symja - The offline Math Engine
               implementation 'org.matheclipse:matheclipse-core:3.0.0' 
           }
           EOF
 
-      - name: 6. Narrative UI - Visuals & Colors
+      - name: "6. Narrative UI - Visuals & Colors"
         run: |
           cat << 'EOF' > app/src/main/res/values/colors.xml
           <resources>
@@ -116,9 +111,8 @@ jobs:
           </resources>
           EOF
 
-      - name: 7. Create UI Drawables & Real Asset Files
+      - name: "7. Create UI Drawables & Real Asset Files"
         run: |
-          # Creating a REAL SVG Diagram file for the Thinking Engine
           cat << 'EOF' > app/src/main/assets/circle_diagram.svg
           <svg height="100" width="100" xmlns="http://www.w3.org/2000/svg">
             <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="blue" />
@@ -128,20 +122,24 @@ jobs:
           cat << 'EOF' > app/src/main/res/drawable/bg_btn_num.xml
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval"><solid android:color="@color/btn_num"/><stroke android:width="1dp" android:color="#1A000000"/></shape>
           EOF
+          
           cat << 'EOF' > app/src/main/res/drawable/bg_btn_top.xml
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval"><solid android:color="@color/btn_top"/></shape>
           EOF
+          
           cat << 'EOF' > app/src/main/res/drawable/bg_btn_op.xml
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval"><solid android:color="@color/btn_op"/></shape>
           EOF
+          
           cat << 'EOF' > app/src/main/res/drawable/bg_btn_zero.xml
           <shape xmlns:android="http://schemas.android.com/apk/res/android"><solid android:color="@color/btn_num"/><corners android:radius="40dp"/><stroke android:width="1dp" android:color="#1A000000"/></shape>
           EOF
+          
           cat << 'EOF' > app/src/main/res/drawable/bg_chat_input.xml
           <shape xmlns:android="http://schemas.android.com/apk/res/android"><solid android:color="@color/btn_top"/><corners android:radius="24dp"/></shape>
           EOF
 
-      - name: 8. Narrative UI XML (WhatsApp Style Chat + Calc)
+      - name: "8. Narrative UI XML"
         run: |
           cat << 'EOF' > app/src/main/res/layout/activity_main.xml
           <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -214,7 +212,7 @@ jobs:
           </androidx.drawerlayout.widget.DrawerLayout>
           EOF
 
-      - name: 9. AndroidManifest (App Name Changed)
+      - name: "9. AndroidManifest"
         run: |
           cat << 'EOF' > app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -229,43 +227,33 @@ jobs:
           </manifest>
           EOF
 
-      - name: 10. Update: Arabi Matrix (Hashing for Unknown Words)
+      - name: "10. Arabi Matrix"
         run: |
           cat << 'EOF' > app/src/main/java/com/zeeshan/calculator/ArabiMatrix.java
           package com.zeeshan.calculator;
 
           public class ArabiMatrix {
-              
-              // 1. LINGUISTIC MAP: Fixed IDs & Hashing for unknowns
               public static int getWordId(String word) {
                   word = word.toLowerCase().trim();
-                  
-                  // Pre-indexed Fixed IDs
                   if (word.contains("circle") || word.contains("daire") || word.contains("vritt")) return 4001;
                   if (word.contains("area") || word.contains("misaha") || word.contains("raqba")) return 1002;
                   if (word.contains("algebra") || word.contains("equation")) return 5005;
-                  
-                  // Hashing Logic (Solves A=1, B=2 Collision Flaw)
                   int hash = Math.abs(word.hashCode());
                   return hash > 0 ? hash : -1;
               }
-              
-              // 2. BINARY TRANSLATION
               public static String toBinary(int id) {
                   if(id == -1) return "0000";
                   return Integer.toBinaryString(id);
               }
-              
-              // 3. LOGIC DECISION
               public static String getFormulaFromId(int id) {
-                  if(id == 4001) return "Pi * r^2"; // Circle
+                  if(id == 4001) return "Pi * r^2";
                   if(id == 5005) return "Ready for Algebra";
                   return "Mathematical Entity";
               }
           }
           EOF
 
-      - name: 11. Main Activity
+      - name: "11. Main Activity"
         run: |
           cat << 'EOF' > app/src/main/java/com/zeeshan/calculator/MainActivity.java
           package com.zeeshan.calculator;
@@ -311,7 +299,6 @@ jobs:
               private Vibrator vibrator;
               private ArrayList<String> historyList = new ArrayList<>();
               private boolean isChatOpen = false;
-              
               private ExprEvaluator mathEngine;
 
               @Override
@@ -380,12 +367,10 @@ jobs:
                   }
               }
 
-              // ================= ARABI MATRIX + SYMJA ENGINE =================
               private void processAiEngine(String rawInput) {
                   chatLogs.append("\nYou: " + rawInput + "\n");
                   String processingText = rawInput.toLowerCase().trim();
                   
-                  // STAGE 1 & 2: Linguistic Map & Binary Thinking Output
                   int conceptId = ArabiMatrix.getWordId(processingText);
                   
                   if (conceptId != -1) {
@@ -400,7 +385,6 @@ jobs:
                       }
                   }
 
-                  // Direct Equation formatting
                   processingText = processingText.replace("ka", "*").replace("of", "*");
                   processingText = processingText.replace("percent", "/100").replace("pratishat", "/100");
                   processingText = processingText.replace("plus", "+").replace("aur", "+").replace("jodo", "+");
@@ -409,7 +393,6 @@ jobs:
                   processingText = processingText.replace("divide", "/").replace("bhag", "/").replace("taqseem", "/");
                   processingText = processingText.replace("÷", "/").replace("×", "*");
 
-                  // Evaluate
                   calculateSymjaResult(processingText, true);
               }
 
@@ -418,7 +401,6 @@ jobs:
                       if (expression.isEmpty()) return;
                       if(!isFromChat) expressionDisplay.setText(expression);
                       
-                      // Symja Engine Process
                       IExpr result = mathEngine.eval(expression);
                       String finalResult = result.toString();
                       
@@ -431,7 +413,6 @@ jobs:
                           currentExpression.setLength(0);
                           currentExpression.append(finalResult);
                       }
-                      
                   } catch (Exception e) {
                       if(isFromChat) {
                           narrateAndLog("Equation samajh nahi aayi. Sirf Math format check karein.");
@@ -511,12 +492,10 @@ jobs:
           }
           EOF
 
-      - name: 12. Create New Custom Icon (Black & Blue Design)
+      - name: "12. Create Custom Icon (Black & Blue Design)"
         run: |
           cat << 'EOF' > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="108dp" android:height="108dp"
-              android:viewportWidth="108" android:viewportHeight="108">
+          <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
               <path android:fillColor="#0A0A0A" android:pathData="M0,0h108v108h-108z"/>
               <path android:fillColor="#333333" android:pathData="M53,0h2v108h-2z"/>
               <path android:fillColor="#333333" android:pathData="M0,53h108v2h-108z"/>
@@ -532,14 +511,13 @@ jobs:
           cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher.xml
           cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher_round.xml
 
-      - name: 13. Compile & Build Final APK
+      - name: "13. Compile & Build Final APK"
         run: |
-          echo "Starting the heavy build process with Maximum RAM..."
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace --info
 
-      - name: 14. Upload Final Premium APK
+      - name: "14. Upload Final Premium APK"
         uses: actions/upload-artifact@v4
         with:
-          name: Z-Plus-Squared-Calculator
+          name: "Z-Plus-Squared-Calculator"
           path: app/build/outputs/apk/debug/app-debug.apk
