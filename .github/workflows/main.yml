@@ -47,7 +47,7 @@ jobs:
           }
           EOF
 
-      - name: 3. Setup Gradle Properties (100% FIX FOR DEPENDENCY CRASH)
+      - name: 3. Setup Gradle Properties (100% Crash Fix)
         run: |
           cat << 'EOF' > gradle.properties
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
@@ -58,7 +58,7 @@ jobs:
       - name: 4. Generate Gradle Wrapper
         run: gradle wrapper --gradle-version 8.4
 
-      - name: 5. App Build Config (Targeting Stable Android SDK 34)
+      - name: 5. App Build Config
         run: |
           cat << 'EOF' > app/build.gradle
           plugins { id 'com.android.application' }
@@ -69,8 +69,8 @@ jobs:
                   applicationId 'com.zeeshan.calculator'
                   minSdk 26
                   targetSdk 34
-                  versionCode 4
-                  versionName "4.0-Pro-Stable"
+                  versionCode 5
+                  versionName "5.0-Premium-UI"
               }
               compileOptions { 
                   sourceCompatibility JavaVersion.VERSION_17
@@ -83,98 +83,116 @@ jobs:
           }
           EOF
 
-      - name: 6. Themes, Colors & Drawables
+      - name: 6. Premium Colors & Themes (From Image)
         run: |
           cat << 'EOF' > app/src/main/res/values/colors.xml
           <resources>
-              <color name="bg_color">#2C3333</color>
-              <color name="btn_color">#395B64</color>
-              <color name="text_color">#E7F6F2</color>
-              <color name="accent_color">#F582A7</color>
+              <color name="bg_dark">#2A3543</color>
+              <color name="btn_num_bg">#344152</color>
+              <color name="btn_top_bg">#DCE1E8</color>
+              <color name="btn_op_bg">#F59514</color>
+              <color name="text_white">#FFFFFF</color>
+              <color name="text_dark">#2A3543</color>
+              <color name="text_hint">#8A9AAB</color>
               <color name="mic_color">#E53935</color>
           </resources>
           EOF
 
           cat << 'EOF' > app/src/main/res/values/themes.xml
           <resources>
-              <style name="Theme.ZeeshanCalc" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-                  <item name="colorPrimary">@color/accent_color</item>
-                  <item name="android:statusBarColor">@color/bg_color</item>
+              <style name="Theme.ZeeshanCalc" parent="Theme.AppCompat.Light.NoActionBar">
+                  <item name="android:windowBackground">@color/bg_dark</item>
+                  <item name="android:statusBarColor">@color/bg_dark</item>
               </style>
           </resources>
           EOF
+
+      - name: 7. Create Custom Button Shapes
+        run: |
+          cat << 'EOF' > app/src/main/res/drawable/bg_btn_num.xml
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+              <solid android:color="@color/btn_num_bg"/>
+              <stroke android:width="1dp" android:color="#415166"/>
+          </shape>
+          EOF
           
-          cat << 'EOF' > app/src/main/res/drawable/bg_button.xml
+          cat << 'EOF' > app/src/main/res/drawable/bg_btn_top.xml
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+              <solid android:color="@color/btn_top_bg"/>
+          </shape>
+          EOF
+          
+          cat << 'EOF' > app/src/main/res/drawable/bg_btn_op.xml
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+              <solid android:color="@color/btn_op_bg"/>
+          </shape>
+          EOF
+          
+          cat << 'EOF' > app/src/main/res/drawable/bg_btn_zero.xml
           <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/btn_color"/>
-              <corners android:radius="16dp"/>
-              <stroke android:width="1dp" android:color="#5A7D8A"/>
+              <solid android:color="@color/btn_num_bg"/>
+              <corners android:radius="40dp"/>
+              <stroke android:width="1dp" android:color="#415166"/>
           </shape>
           EOF
 
-      - name: 7. Create Launcher Icons
-        run: |
-          cat << 'EOF' > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-              <path android:fillColor="@color/accent_color" android:pathData="M0,0h108v108h-108z"/>
-          </vector>
-          EOF
-          cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
-          
-          cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher.xml
-          cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher_round.xml
-
-      - name: 8. Create UI Layout
+      - name: 8. Create Premium UI Layout (Like Image)
         run: |
           cat << 'EOF' > app/src/main/res/layout/activity_main.xml
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent" android:layout_height="match_parent"
-              android:orientation="vertical" android:background="@color/bg_color" android:padding="16dp">
+              android:orientation="vertical" android:background="@color/bg_dark" android:padding="20dp">
               
-              <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                  android:text="Zeeshan Husain Smile Pro AI Calc" android:textColor="@color/accent_color"
-                  android:textSize="14sp" android:textStyle="bold" android:gravity="center" android:padding="8dp"/>
+              <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                  <androidx.appcompat.widget.AppCompatButton android:id="@+id/btn_mic"
+                      android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/bg_btn_top"
+                      android:text="MIC" android:textColor="@color/mic_color" android:textSize="12sp" android:textStyle="bold"/>
+                  <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"/>
+              </LinearLayout>
 
-              <TextView android:id="@+id/tv_display"
-                  android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-                  android:gravity="bottom|end" android:text="0" android:textColor="@color/text_color"
-                  android:textSize="56sp" android:padding="16dp" android:maxLines="2" android:autoSizeTextType="uniform"/>
+              <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:gravity="bottom|end" android:paddingBottom="20dp">
+                  <TextView android:id="@+id/tv_expression" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                      android:text="" android:textColor="@color/text_hint" android:textSize="24sp" android:fontFamily="sans-serif-light"/>
+                  <TextView android:id="@+id/tv_display" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                      android:text="0" android:textColor="@color/text_white" android:textSize="64sp" android:fontFamily="sans-serif-light"/>
+              </LinearLayout>
 
-              <GridLayout android:id="@+id/grid_layout"
-                  android:layout_width="match_parent" android:layout_height="wrap_content"
-                  android:columnCount="4" android:rowCount="6" android:useDefaultMargins="true" android:alignmentMode="alignBounds">
+              <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                   
-                  <Button android:text="AC" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="(" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text=")" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="/" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <LinearLayout android:layout_width="match_parent" android:layout_height="75dp" android:orientation="horizontal" android:layout_marginBottom="12dp">
+                      <androidx.appcompat.widget.AppCompatButton android:text="AC" android:textColor="@color/text_dark" android:background="@drawable/bg_btn_top" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="22sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="+/-" android:textColor="@color/text_dark" android:background="@drawable/bg_btn_top" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="22sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="DEL" android:textColor="@color/text_dark" android:background="@drawable/bg_btn_top" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="18sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="÷" android:textColor="@color/text_white" android:background="@drawable/bg_btn_op" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:textSize="28sp"/>
+                  </LinearLayout>
 
-                  <Button android:text="7" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="8" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="9" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="*" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <LinearLayout android:layout_width="match_parent" android:layout_height="75dp" android:orientation="horizontal" android:layout_marginBottom="12dp">
+                      <androidx.appcompat.widget.AppCompatButton android:text="7" android:textColor="@color/text_white" android:background="@drawable/bg_btn_num" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="24sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="8" android:textColor="@color/text_white" android:background="@drawable/bg_btn_num" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="24sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="9" android:textColor="@color/text_white" android:background="@drawable/bg_btn_num" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="24sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="×" android:textColor="@color/text_white" android:background="@drawable/bg_btn_op" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:textSize="28sp"/>
+                  </LinearLayout>
 
-                  <Button android:text="4" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="5" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="6" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="-" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <LinearLayout android:layout_width="match_parent" android:layout_height="75dp" android:orientation="horizontal" android:layout_marginBottom="12dp">
+                      <androidx.appcompat.widget.AppCompatButton android:text="4" android:textColor="@color/text_white" android:background="@drawable/bg_btn_num" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="24sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="5" android:textColor="@color/text_white" android:background="@drawable/bg_btn_num" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="24sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="6" android:textColor="@color/text_white" android:background="@drawable/bg_btn_num" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="24sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="-" android:textColor="@color/text_white" android:background="@drawable/bg_btn_op" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:textSize="32sp"/>
+                  </LinearLayout>
 
-                  <Button android:text="1" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="2" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="3" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="+" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
+                  <LinearLayout android:layout_width="match_parent" android:layout_height="75dp" android:orientation="horizontal" android:layout_marginBottom="12dp">
+                      <androidx.appcompat.widget.AppCompatButton android:text="1" android:textColor="@color/text_white" android:background="@drawable/bg_btn_num" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="24sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="2" android:textColor="@color/text_white" android:background="@drawable/bg_btn_num" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="24sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="3" android:textColor="@color/text_white" android:background="@drawable/bg_btn_num" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="24sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="+" android:textColor="@color/text_white" android:background="@drawable/bg_btn_op" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:textSize="28sp"/>
+                  </LinearLayout>
 
-                  <Button android:text="0" android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="." android:background="@drawable/bg_button" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="DEL" android:background="@drawable/bg_button" android:textColor="#FFB74D" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="=" android:backgroundTint="@color/accent_color" android:textColor="@color/bg_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-
-                  <Button android:text="%" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="^" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="sqrt" android:background="@drawable/bg_button" android:textColor="@color/accent_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-                  <Button android:text="MIC" android:backgroundTint="@color/mic_color" android:textColor="@color/text_color" android:layout_columnWeight="1" android:layout_margin="4dp"/>
-              </GridLayout>
+                  <LinearLayout android:layout_width="match_parent" android:layout_height="75dp" android:orientation="horizontal">
+                      <androidx.appcompat.widget.AppCompatButton android:text="0" android:textColor="@color/text_white" android:background="@drawable/bg_btn_zero" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="2" android:layout_marginEnd="12dp" android:textSize="24sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="." android:textColor="@color/text_white" android:background="@drawable/bg_btn_num" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="12dp" android:textSize="24sp"/>
+                      <androidx.appcompat.widget.AppCompatButton android:text="=" android:textColor="@color/text_white" android:background="@drawable/bg_btn_op" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:textSize="28sp"/>
+                  </LinearLayout>
+              </LinearLayout>
           </LinearLayout>
           EOF
 
@@ -185,7 +203,7 @@ jobs:
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
               <uses-permission android:name="android.permission.VIBRATE" />
               <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>
-              <application android:label="ZH Pro Calc" android:theme="@style/Theme.ZeeshanCalc" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
+              <application android:label="ZH Pro Calc" android:theme="@style/Theme.ZeeshanCalc" android:icon="@mipmap/ic_launcher">
                   <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
@@ -196,7 +214,7 @@ jobs:
           </manifest>
           EOF
 
-      - name: 10. Write Pro Math Engine & Voice Logic
+      - name: 10. Write Pro Math Engine & Logic
         run: |
           cat << 'EOF' > app/src/main/java/com/zeeshan/calculator/MainActivity.java
           package com.zeeshan.calculator;
@@ -211,10 +229,9 @@ jobs:
           import android.speech.SpeechRecognizer;
           import android.speech.tts.TextToSpeech;
           import android.view.View;
+          import android.view.ViewGroup;
           import android.widget.Button;
-          import android.widget.GridLayout;
           import android.widget.TextView;
-          import android.widget.Toast;
           import androidx.appcompat.app.AppCompatActivity;
           import androidx.core.app.ActivityCompat;
           import androidx.core.content.ContextCompat;
@@ -224,7 +241,7 @@ jobs:
           public class MainActivity extends AppCompatActivity {
               private TextToSpeech tts;
               private SpeechRecognizer speechRecognizer;
-              private TextView display;
+              private TextView display, expressionDisplay;
               private StringBuilder currentExpression = new StringBuilder();
               private Vibrator vibrator;
 
@@ -233,39 +250,25 @@ jobs:
                   super.onCreate(savedInstanceState);
                   setContentView(R.layout.activity_main);
                   display = findViewById(R.id.tv_display);
+                  expressionDisplay = findViewById(R.id.tv_expression);
                   vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
                   tts = new TextToSpeech(this, status -> {
                       if (status == TextToSpeech.SUCCESS) tts.setLanguage(new Locale("en", "IN"));
                   });
 
-                  if (SpeechRecognizer.isRecognitionAvailable(this)) {
-                      speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-                      speechRecognizer.setRecognitionListener(new RecognitionListener() {
-                          @Override public void onReadyForSpeech(Bundle params) {}
-                          @Override public void onBeginningOfSpeech() { display.setText("Listening..."); }
-                          @Override public void onRmsChanged(float rmsdB) {}
-                          @Override public void onBufferReceived(byte[] buffer) {}
-                          @Override public void onEndOfSpeech() {}
-                          @Override public void onError(int error) { display.setText(currentExpression.toString()); }
-                          @Override public void onResults(Bundle results) {
-                              ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                              if (matches != null && !matches.isEmpty()) {
-                                  String spokenText = matches.get(0).toLowerCase();
-                                  processVoiceCommand(spokenText);
-                              }
-                          }
-                          @Override public void onPartialResults(Bundle partialResults) {}
-                          @Override public void onEvent(int eventType, Bundle params) {}
-                      });
-                  }
-
-                  GridLayout grid = findViewById(R.id.grid_layout);
-                  for (int i = 0; i < grid.getChildCount(); i++) {
-                      View child = grid.getChildAt(i);
-                      if (child instanceof Button) {
-                          child.setOnClickListener(v -> onButtonClick((Button) v));
+                  setupVoice();
+                  setupButtons(findViewById(android.R.id.content));
+              }
+              
+              private void setupButtons(View view) {
+                  if (view instanceof ViewGroup) {
+                      ViewGroup group = (ViewGroup) view;
+                      for (int i = 0; i < group.getChildCount(); i++) {
+                          setupButtons(group.getChildAt(i));
                       }
+                  } else if (view instanceof Button) {
+                      view.setOnClickListener(v -> onButtonClick((Button) v));
                   }
               }
 
@@ -276,6 +279,7 @@ jobs:
                   if (btnText.equals("AC")) {
                       currentExpression.setLength(0);
                       display.setText("0");
+                      expressionDisplay.setText("");
                   } else if (btnText.equals("DEL")) {
                       if (currentExpression.length() > 0) {
                           currentExpression.deleteCharAt(currentExpression.length() - 1);
@@ -283,17 +287,17 @@ jobs:
                       }
                   } else if (btnText.equals("MIC")) {
                       startVoiceInput();
-                  } else if (btnText.equals("=")) {
-                          calculateResult();
-                  } else {
-                      if (isOperator(btnText.charAt(0)) && currentExpression.length() > 0) {
-                          char lastChar = currentExpression.charAt(currentExpression.length() - 1);
-                          if (isOperator(lastChar)) {
-                              currentExpression.deleteCharAt(currentExpression.length() - 1);
-                          }
+                  } else if (btnText.equals("+/-")) {
+                      if (currentExpression.length() > 0 && !display.getText().toString().equals("Error")) {
+                          if (currentExpression.charAt(0) == '-') currentExpression.deleteCharAt(0);
+                          else currentExpression.insert(0, "-");
+                          display.setText(currentExpression.toString());
                       }
+                  } else if (btnText.equals("=")) {
+                      calculateResult();
+                  } else {
                       if (display.getText().toString().equals("0") || display.getText().toString().equals("Error")) {
-                          if (!isOperator(btnText.charAt(0)) && !btnText.equals(".")) {
+                          if (!btnText.equals("÷") && !btnText.equals("×") && !btnText.equals("+") && !btnText.equals("-") && !btnText.equals(".")) {
                               currentExpression.setLength(0);
                           }
                       }
@@ -301,8 +305,6 @@ jobs:
                       display.setText(currentExpression.toString());
                   }
               }
-
-              private boolean isOperator(char c) { return c == '+' || c == '-' || c == '*' || c == '/' || c == '^'; }
 
               private void startVoiceInput() {
                   if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
@@ -317,9 +319,9 @@ jobs:
 
               private void processVoiceCommand(String text) {
                   text = text.replace("plus", "+").replace("minus", "-")
-                             .replace("multiply", "*").replace("divided by", "/")
-                             .replace("divide", "/").replace("into", "*")
-                             .replace("x", "*").replaceAll("[^0-9+\\-*/().^%]", "");
+                             .replace("multiply", "×").replace("divided by", "÷")
+                             .replace("divide", "÷").replace("into", "×")
+                             .replace("x", "×").replaceAll("[^0-9+\\-÷×().]", "");
                   currentExpression.setLength(0);
                   currentExpression.append(text);
                   display.setText(currentExpression.toString());
@@ -328,9 +330,10 @@ jobs:
 
               private void calculateResult() {
                   try {
-                      String mathExpression = currentExpression.toString().replace("sqrt", "s");
+                      String mathExpression = currentExpression.toString().replace("×", "*").replace("÷", "/");
                       if (mathExpression.isEmpty()) return;
                       
+                      expressionDisplay.setText(currentExpression.toString());
                       double result = eval(mathExpression);
                       String finalResult = (result == (long) result) ? String.format(Locale.US, "%d", (long) result) : String.format(Locale.US, "%s", result);
                       
@@ -338,7 +341,7 @@ jobs:
                       currentExpression.setLength(0);
                       currentExpression.append(finalResult);
 
-                      if (tts != null) { tts.speak("Result is " + finalResult, TextToSpeech.QUEUE_FLUSH, null, null); }
+                      if (tts != null) { tts.speak(finalResult, TextToSpeech.QUEUE_FLUSH, null, null); }
                   } catch (Exception e) {
                       display.setText("Error");
                       currentExpression.setLength(0);
@@ -371,15 +374,32 @@ jobs:
                           else if ((ch >= '0' && ch <= '9') || ch == '.') { 
                               while ((ch >= '0' && ch <= '9') || ch == '.') nextChar(); 
                               x = Double.parseDouble(str.substring(startPos, this.pos)); 
-                          }
-                          else if (eat('s')) { x = Math.sqrt(parseFactor()); }
-                          else { throw new RuntimeException("Unexpected: " + (char)ch); }
-                          
-                          if (eat('^')) x = Math.pow(x, parseFactor());
-                          if (eat('%')) x = x / 100;
+                          } else { throw new RuntimeException("Unexpected: " + (char)ch); }
                           return x;
                       }
                   }.parse();
+              }
+              
+              private void setupVoice() {
+                  if (SpeechRecognizer.isRecognitionAvailable(this)) {
+                      speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+                      speechRecognizer.setRecognitionListener(new RecognitionListener() {
+                          @Override public void onReadyForSpeech(Bundle params) {}
+                          @Override public void onBeginningOfSpeech() { expressionDisplay.setText("Listening..."); }
+                          @Override public void onRmsChanged(float rmsdB) {}
+                          @Override public void onBufferReceived(byte[] buffer) {}
+                          @Override public void onEndOfSpeech() {}
+                          @Override public void onError(int error) { expressionDisplay.setText(""); }
+                          @Override public void onResults(Bundle results) {
+                              ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                              if (matches != null && !matches.isEmpty()) {
+                                  processVoiceCommand(matches.get(0).toLowerCase());
+                              }
+                          }
+                          @Override public void onPartialResults(Bundle partialResults) {}
+                          @Override public void onEvent(int eventType, Bundle params) {}
+                      });
+                  }
               }
 
               @Override
@@ -391,13 +411,24 @@ jobs:
           }
           EOF
 
-      - name: 11. Build Final APK
+      - name: 11. Create Mipmap Fallbacks
+        run: |
+          cat << 'EOF' > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+              <path android:fillColor="#2A3543" android:pathData="M0,0h108v108h-108z"/>
+          </vector>
+          EOF
+          cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+          cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher.xml
+          cp app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml app/src/main/res/mipmap-xhdpi/ic_launcher_round.xml
+
+      - name: 12. Build Final APK
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace --info
 
-      - name: 12. Upload Final Pro APK
+      - name: 13. Upload Final Premium APK
         uses: actions/upload-artifact@v4
         with:
-          name: Zeeshan-Husain-Smile-Voice-Pro-Calc
+          name: Zeeshan-Premium-Calc
           path: app/build/outputs/apk/debug/app-debug.apk
